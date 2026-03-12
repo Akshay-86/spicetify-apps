@@ -9,16 +9,14 @@ This is a modified version of the Spicetify Stats app that includes a built-in r
 ### **Windows (PowerShell)**
 Run this command in your terminal:
 ```powershell
-iwr -useb https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/Akshay-86/spicetify-apps/main/projects/stats/install.ps1 | iex
 ```
 
 ### **Linux / macOS**
 Run this command in your terminal:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Akshay-86/spicetify-apps/main/projects/stats/install.sh | bash
 ```
-
-*Note: Replace `YOUR_USERNAME` and `YOUR_REPO` with your actual GitHub details after uploading.*
 
 ---
 
@@ -38,16 +36,18 @@ Your stats will now load using a separate API quota! (Note: Tokens expire every 
 
 ## 📜 Credits
 
-This project is a combination of two amazing community efforts:
+This project is a combination of community efforts and AI-assisted stabilization:
 
 1.  **Original App**: [Spicetify Stats](https://github.com/harbassan/spicetify-apps) by **harbassan**.
 2.  **Bypass Solution**: The OAuth bypass logic and redirect implementation are based on the work by [huangdarren1106](https://github.com/huangdarren1106/huangdarren1106.github.io).
+3.  **AI Development Assistant**: Refactored, stabilized, and cross-platform compatible version created by **Gemini CLI**, acting on user prompts to resolve critical crashes (`React Error #31`) and initialization deadlocks.
 
 ### **Modifications in this version:**
 - Replaced all unstable Spicetify internal React components with standard HTML/CSS to prevent `React Error #31` crashes.
 - Integrated a smooth loading spinner for tab switching.
 - Refactored initialization to prevent deadlocks and ensure consistent booting.
 - Added a simplified "Instant Login" flow for rate-limited users.
+- Universal "one-liner" installation scripts for Windows and Linux.
 
 ---
 

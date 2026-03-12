@@ -17,7 +17,7 @@ mkdir -p "$STATS_DIR"
 mkdir -p "$EXTENSIONS_DIR"
 
 # Download files from your GitHub 'dist' folder
-BASE_URL="https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/$BRANCH/dist"
+BASE_URL="https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/$BRANCH/projects/stats/dist"
 
 curl -fsSL "$BASE_URL/index.js" -o "$STATS_DIR/index.js"
 curl -fsSL "$BASE_URL/index.css" -o "$STATS_DIR/index.css"

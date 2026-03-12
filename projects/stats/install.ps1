@@ -14,7 +14,7 @@ If (!(Test-Path -Path $statsDir)) { New-Item -ItemType Directory -Path $statsDir
 If (!(Test-Path -Path $extensionsDir)) { New-Item -ItemType Directory -Path $extensionsDir -Force }
 
 # Download files from your GitHub 'dist' folder
-$baseUrl = "https://raw.githubusercontent.com/$githubUser/$repoName/$branch/dist"
+$baseUrl = "https://raw.githubusercontent.com/$githubUser/$repoName/$branch/projects/stats/dist"
 
 Invoke-WebRequest -Uri "$baseUrl/index.js" -OutFile "$statsDir\index.js"
 Invoke-WebRequest -Uri "$baseUrl/index.css" -OutFile "$statsDir\index.css"
