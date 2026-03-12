@@ -9,7 +9,7 @@ import * as lastFM from "../api/lastfm";
 import * as spotify from "../api/spotify";
 import { SpotifyRange } from "../types/spotify";
 import { convertArtist, minifyArtist } from "../utils/converter";
-import useStatus from "@shared/status/useStatus";
+import useStatus from "../hooks/use_status";
 import { useQuery } from "@shared/types/react_query";
 import { cacher, invalidator } from "../extensions/cache";
 
@@ -38,9 +38,10 @@ const ArtistsPage = ({ configWrapper }: { configWrapper: ConfigWrapper }) => {
 	const { status, error, data, refetch } = useQuery({
 		queryKey: ["top-artists", activeOption.id],
 		queryFn: cacher(() => getTopArtists(activeOption.id as SpotifyRange, configWrapper.config)),
+		retry: false,
 	});
 
-	const Status = useStatus(status, error);
+	const Status = useStatus(status, error, refetch);
 
 	const props = {
 		lhs: ["Top Artists"],
@@ -76,4 +77,4 @@ const ArtistsPage = ({ configWrapper }: { configWrapper: ConfigWrapper }) => {
 	);
 };
 
-export default React.memo(ArtistsPage);
+export default ArtistsPage;

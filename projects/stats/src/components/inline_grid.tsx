@@ -55,4 +55,4 @@ function InlineGrid(props: InlineGridProps): React.ReactElement<HTMLTableSection
 	);
 }
 
-export default React.memo(InlineGrid);
+export default InlineGrid;

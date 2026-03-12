@@ -1,101 +1,55 @@
-# Spicetify Stats
+# Spicetify Stats (Rate-Limit Bypass Version)
 
-### A custom app that shows you your top artists, tracks, genres and an analysis of your whole library, including individual playlists.
-
----
-
-### Top Artists
-
-![preview](previews/top_artists.png)
+This is a modified version of the Spicetify Stats app that includes a built-in rate-limit bypass system. If you are seeing `429: Too Many Requests` or connection errors, this version allows you to use your own Spotify API token to ensure your stats always load.
 
 ---
 
-### Top Tracks
+## 🚀 Quick Installation
 
-![preview](previews/top_tracks.png)
-
----
-
-### Top Genres
-
-![preview](previews/top_genres.png)
-
----
-
-### Library Analysis
-
-![preview](previews/library_analysis.png)
-
----
-
-### Playlist Analysis
-
-![preview](previews/playlist_analysis.png)
-
----
-
-### Top Albums (works with Last.fm Sync only)
-
-![preview](previews/top_albums.png)
-
----
-
-### Last.fm Daily Charts
-
-![preview](previews/top_charts.png)
-
----
-### Automatic Installation (Linux)
-
-```sh
-sh <(curl -s https://raw.githubusercontent.com/harbassan/spicetify-apps/refs/heads/main/projects/stats/install.sh)
-```
-
-### Automatic Installation (Windows, Powershell)
-
-```ps1
-iwr -useb "https://raw.githubusercontent.com/harbassan/spicetify-apps/refs/heads/main/projects/stats/install.ps1" | iex
-```
-
-### Manual Installation
-
-Download the zip file in the [latest release](https://github.com/harbassan/spicetify-apps/releases?q=stats&expanded=true), rename the unzipped folder to `stats`, then place that folder into your `CustomApps` folder in the `spicetify` directory and you're all done. If everything's correct, the structure should be similar to this:
-
-```
-📦spicetify\CustomApps
- ┣ 📂marketplace
- ┣ etc...
- ┗ 📂stats
- ┃ ┣ 📜extension.js
- ┃ ┣ 📜index.js
- ┃ ┣ 📜manifest.json
- ┃ ┗ 📜style.css
-```
-
-Finally, run these commands to apply:
-
+### **Windows (PowerShell)**
+Run this command in your terminal:
 ```powershell
-spicetify config custom_apps stats
-spicetify apply
+iwr -useb https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/install.ps1 | iex
 ```
 
-That's it. Enjoy.
-
-For more help on installing visit the [Spicetify Docs](https://spicetify.app/docs/advanced-usage/custom-apps#installing).
-
-### Uninstallation
-
-To uninstall the app, run these commands:
-
-```powershell
-spicetify config custom_apps stats-
-spicetify apply
+### **Linux / macOS**
+Run this command in your terminal:
+```bash
+curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/install.sh | bash
 ```
 
-If you want to remove the app completely, just delete the `stats` folder after running the above commands.
+*Note: Replace `YOUR_USERNAME` and `YOUR_REPO` with your actual GitHub details after uploading.*
 
 ---
 
-If you have any questions or issues regarding the app, open an issue on this repo. While doing so, please specify your spicetify version and installation method.
+## 🛠️ How to fix "Rate Limited" (429 Errors)
 
-If you like the app, I'd be really grateful if you liked the repo ❤️.
+If Spotify blocks the app's requests, a **"Login with Spotify"** button will appear automatically.
+
+1.  Click the **Login with Spotify** button.
+2.  A browser window will open. Log in and approve the app.
+3.  You will be redirected to a callback page (e.g., `huangdarren1106.github.io/callback`).
+4.  **Copy the full URL** from your browser's address bar.
+5.  Paste that URL into the box in Spotify and click **Save & Refresh**.
+
+Your stats will now load using a separate API quota! (Note: Tokens expire every 1 hour).
+
+---
+
+## 📜 Credits
+
+This project is a combination of two amazing community efforts:
+
+1.  **Original App**: [Spicetify Stats](https://github.com/harbassan/spicetify-apps) by **harbassan**.
+2.  **Bypass Solution**: The OAuth bypass logic and redirect implementation are based on the work by [huangdarren1106](https://github.com/huangdarren1106/huangdarren1106.github.io).
+
+### **Modifications in this version:**
+- Replaced all unstable Spicetify internal React components with standard HTML/CSS to prevent `React Error #31` crashes.
+- Integrated a smooth loading spinner for tab switching.
+- Refactored initialization to prevent deadlocks and ensure consistent booting.
+- Added a simplified "Instant Login" flow for rate-limited users.
+
+---
+
+## ⚖️ License
+MIT License. See the original repository for more details.

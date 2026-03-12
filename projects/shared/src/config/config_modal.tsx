@@ -164,18 +164,9 @@ const ConfigRow = (props: { name: string; desc?: string; children: React.ReactEl
             <label className="col description">
                 {props.name}
                 {props.desc && (
-                    <Spicetify.ReactComponent.TooltipWrapper
-                        label={<div dangerouslySetInnerHTML={{ __html: props.desc }} />}
-                        renderInline={true}
-                        showDelay={10}
-                        placement="top"
-                        labelClassName="tooltip"
-                        disabled={false}
-                    >
-                        <div className="tooltip-icon">
-                            <TooltipIcon />
-                        </div>
-                    </Spicetify.ReactComponent.TooltipWrapper>
+                    <div title={props.desc} className="tooltip-icon">
+                        <TooltipIcon />
+                    </div>
                 )}
             </label>
             <div className="col action">{props.children}</div>

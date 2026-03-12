@@ -11,69 +11,60 @@ interface SpotifyCardProps {
 	provider?: "spotify" | "lastfm";
 }
 
-/**
- * renders a Spotify card component with contextual menu support
- * - for "lastfm" provider, the card opens external links instead of navigating within Spotify
- * - right-click triggers a context menu with type-specific actions (ArtistMenu, AlbumMenu, or PlaylistMenu)
- */
 function SpotifyCard(props: SpotifyCardProps): React.ReactElement<HTMLDivElement> {
-	// @ts-ignore
-	const { Cards, TextComponent, ArtistMenu, AlbumMenu, PlaylistMenu, ContextMenu } = Spicetify.ReactComponent;
-	const { FeatureCard: Card, CardImage } = Cards;
-	const { type, header, uri, imageUrl, subheader, artistUri, badge, provider = "spotify" } = props;
+	const { type, header, uri, imageUrl, subheader, badge, provider = "spotify" } = props;
 
-	const Menu = () => {
-		switch (type) {
-			case "artist":
-				return <ArtistMenu uri={uri} />;
-			case "album":
-				return <AlbumMenu uri={uri} artistUri={artistUri} canRemove={true} />;
-			case "playlist":
-				return <PlaylistMenu uri={uri} />;
-			default:
-				return <></>;
+	const handleClick = () => {
+		if (provider === "lastfm") {
+			window.open(uri, "_blank");
+		} else {
+			window.Spicetify.Platform.History.push(`/stats/${type}/${uri.split(':')[2]}`);
 		}
 	};
 
-	let lastfmProps = {};
-
-	if (provider === "lastfm") {
-		lastfmProps = {
-			onClick: () => window.open(uri, "_blank"),
-			isPlayable: false,
-			delegateNavigation: true,
-		};
-	};
-
 	return (
-		<ContextMenu menu={Menu()} trigger="right-click">
-			<div style={{ position: "relative" }}>
-				<Card
-					featureIdentifier={type}
-					headerText={header}
-					renderCardImage={() => (
-						<CardImage
-							images={[
-								{
-									height: 640,
-									url: imageUrl,
-									width: 640,
-								},
-							]}
-							isCircular={type === "artist"}
-						/>
-					)}
-					renderSubHeaderContent={() => (
-						<TextComponent as="div" variant="mesto" semanticColor="textSubdued">
-							{subheader}
-						</TextComponent>
-					)}
-					uri={uri}
-					{...lastfmProps}
+		<div 
+			onClick={handleClick}
+			className="main-card-card" 
+			style={{ 
+				background: "var(--spice-card)", 
+				padding: "16px", 
+				borderRadius: "8px", 
+				cursor: "pointer", 
+				position: "relative",
+				transition: "background 0.3s ease"
+			}}
+		>
+			<div className="main-card-imageContainer" style={{ marginBottom: "16px" }}>
+				<img 
+					src={imageUrl} 
+					style={{ 
+						width: "100%", 
+						aspectRatio: "1/1", 
+						objectFit: "cover", 
+						borderRadius: type === "artist" ? "50%" : "4px",
+						boxShadow: "0 8px 24px rgba(0,0,0,0.5)"
+					}} 
 				/>
-				{badge && <div className="badge">{badge}</div>}
 			</div>
-		</ContextMenu>
+			<div className="main-card-cardMetadata">
+				<div style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+					{header}
+				</div>
+				<div style={{ color: "var(--spice-subtext)", fontSize: "14px" }}>
+					{subheader}
+				</div>
+			</div>
+			{badge && (
+				<div style={{ 
+					position: "absolute", top: "8px", right: "8px", 
+					background: "rgba(0,0,0,0.6)", padding: "2px 8px", 
+					borderRadius: "12px", fontSize: "12px" 
+				}}>
+					{badge}
+				</div>
+			)}
+		</div>
 	);
 }
 

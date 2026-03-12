@@ -1,42 +1,28 @@
-# Define variables
+# EDIT THIS: Replace with your GitHub username and repo name
+$githubUser = "Akshay-86"
+$repoName = "spicetify-apps"
+$branch = "main"
+
 $customAppsDir = "$env:APPDATA\spicetify\CustomApps"
-$statsAppDir = "$customAppsDir\stats"
-$repo = "harbassan/spicetify-apps"
-$zipFile = "$env:TEMP\spicetify-stats.zip"
-$tempDir = "$env:TEMP\spicetify-stats"
+$extensionsDir = "$env:APPDATA\spicetify\Extensions"
+$statsDir = "$customAppsDir\stats"
 
-# Create CustomApps directory if it doesn't exist
-If (!(Test-Path -Path $customAppsDir)) {
-  New-Item -ItemType Directory -Path $customAppsDir
-}
+Write-Host "Downloading and Installing Fixed Spicetify Stats..." -ForegroundColor Cyan
 
-# Get the latest STATS release download URL
-$latestRelease = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases") | Where-Object {
-      $_.tag_name -match "stats-v[0-9]+\.[0-9]+\.[0-9]+"
-    } | Select-Object -First 1;
-$latestReleaseDownloadUrl = (Invoke-RestMethod -Uri $latestRelease.url).assets[0].browser_download_url
+# Create folders
+If (!(Test-Path -Path $statsDir)) { New-Item -ItemType Directory -Path $statsDir -Force }
+If (!(Test-Path -Path $extensionsDir)) { New-Item -ItemType Directory -Path $extensionsDir -Force }
 
-# Download the zip file
-Invoke-WebRequest -Uri $latestReleaseDownloadUrl -OutFile $zipFile
+# Download files from your GitHub 'dist' folder
+$baseUrl = "https://raw.githubusercontent.com/$githubUser/$repoName/$branch/dist"
 
-# Unzip the file
-Expand-Archive -Path $zipFile -DestinationPath $tempDir -Force
+Invoke-WebRequest -Uri "$baseUrl/index.js" -OutFile "$statsDir\index.js"
+Invoke-WebRequest -Uri "$baseUrl/index.css" -OutFile "$statsDir\index.css"
+Invoke-WebRequest -Uri "$baseUrl/manifest.json" -OutFile "$statsDir\manifest.json"
+Invoke-WebRequest -Uri "$baseUrl/extension.js" -OutFile "$extensionsDir\stats_extension.js"
 
-# Move the unzipped folder to the correct location
-if (Test-Path -Path "$statsAppDir\*") {
-  Remove-Item -Path "$statsAppDir\*" -Recurse -Force
-  Write-Host "warning " -ForegroundColor DarkYellow -NoNewline
-  Write-Host "`"$statsAppDir`" Pre-existing file/s were found and deleted."
-}
-
-Move-Item -Path "$tempDir\*" -Destination $statsAppDir -Force
-
-# Apply Spicetify configuration
-spicetify config custom_apps stats
+# Apply Spicetify config
+spicetify config custom_apps stats extensions stats_extension.js
 spicetify apply
 
-# Clean up
-Remove-Item -Path $zipFile, $tempDir -Recurse -Force
-
-Write-Host "success " -ForegroundColor DarkGreen -NoNewline
-Write-Host "Installation complete. Enjoy your new stats app!"
+Write-Host "Success! Stats installed from GitHub." -ForegroundColor Green

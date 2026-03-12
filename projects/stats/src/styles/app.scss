@@ -145,6 +145,166 @@
         height: 100%;
     }
 
+    .stats-loading-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        font-size: 24px;
+        color: var(--spice-subtext);
+    }
+
+    .stats-debugConsole {
+        position: fixed;
+        right: 24px;
+        bottom: 100px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .stats-debugConsole-toggle,
+    .stats-debugConsole-clear {
+        border: 1px solid rgba(var(--spice-rgb-selected-row), 0.3);
+        background: rgba(var(--spice-rgb-player), 0.95);
+        color: var(--spice-text);
+        border-radius: 999px;
+        padding: 8px 14px;
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+    }
+
+    .stats-debugConsole-panel {
+        width: min(520px, calc(100vw - 48px));
+        max-height: min(70vh, 680px);
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid rgba(var(--spice-rgb-selected-row), 0.25);
+        background: rgba(var(--spice-rgb-player), 0.97);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stats-debugConsole-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(var(--spice-rgb-selected-row), 0.15);
+
+        h3,
+        p {
+            margin: 0;
+        }
+
+        p {
+            color: var(--spice-subtext);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    }
+
+    .stats-debugConsole-section {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(var(--spice-rgb-selected-row), 0.12);
+    }
+
+    .stats-debugConsole-sectionTitle {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--spice-subtext);
+        margin-bottom: 10px;
+    }
+
+    .stats-debugConsole-empty {
+        color: var(--spice-subtext);
+        font-size: 13px;
+    }
+
+    .stats-debugConsole-retry {
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(var(--spice-rgb-main), 0.65);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+    }
+
+    .stats-debugConsole-retry+.stats-debugConsole-retry {
+        margin-top: 8px;
+    }
+
+    .stats-debugConsole-retryTitle {
+        font-weight: 700;
+    }
+
+    .stats-debugConsole-retryMessage {
+        color: var(--spice-subtext);
+    }
+
+    .stats-debugConsole-logList {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow: auto;
+        padding-right: 4px;
+    }
+
+    .stats-debugConsole-log {
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(var(--spice-rgb-main), 0.65);
+        font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .stats-debugConsole-log.warn {
+        border-left: 3px solid #f59e0b;
+    }
+
+    .stats-debugConsole-log.error {
+        border-left: 3px solid #ef4444;
+    }
+
+    .stats-debugConsole-log.info {
+        border-left: 3px solid #38bdf8;
+    }
+
+    .stats-debugConsole-logHeader {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--spice-subtext);
+        margin-bottom: 6px;
+    }
+
+    .stats-debugConsole-level {
+        font-weight: 700;
+    }
+
+    .stats-debugConsole-message {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .stats-debugConsole-meta {
+        margin: 8px 0 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--spice-subtext);
+        font-size: 11px;
+    }
+
 }
 
 .GenericModal[aria-label="Playlist Stats"] .main-embedWidgetGenerator-container {

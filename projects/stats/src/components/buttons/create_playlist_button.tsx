@@ -21,20 +21,29 @@ async function createPlaylistAsync(infoToCreatePlaylist: InfoToCreatePlaylist): 
 }
 
 function CreatePlaylistButton(props: CreatePlaylistButtonProps): React.ReactElement<HTMLButtonElement> {
-	const { TooltipWrapper, ButtonSecondary } = Spicetify.ReactComponent;
 	const { infoToCreatePlaylist } = props;
 
 	return (
-		<TooltipWrapper label={"Turn Into Playlist"} renderInline={true} placement="top">
-			<ButtonSecondary
+		<div title="Turn Into Playlist">
+			<button
 				aria-label="Turn Into Playlist"
-				children="Turn Into Playlist"
-				semanticColor="textBase"
-				buttonSize="sm"
 				onClick={() => createPlaylistAsync(infoToCreatePlaylist)}
 				className="stats-make-playlist-button"
-			/>
-		</TooltipWrapper>
+				style={{
+					background: "transparent",
+					border: "1px solid rgba(255,255,255,0.2)",
+					color: "white",
+					padding: "4px 12px",
+					borderRadius: "999px",
+					fontSize: "12px",
+					fontWeight: "bold",
+					cursor: "pointer",
+					marginLeft: "12px"
+				}}
+			>
+				Turn Into Playlist
+			</button>
+		</div>
 	);
 }
 

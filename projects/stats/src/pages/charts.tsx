@@ -16,7 +16,7 @@ import * as lastFM from "../api/lastfm";
 import RefreshButton from "../components/buttons/refresh_button";
 import SettingsButton from "@shared/components/settings_button";
 import { convertArtist, convertTrack } from "../utils/converter";
-import useStatus from "@shared/status/useStatus";
+import useStatus from "../hooks/use_status";
 import { useQuery } from "@shared/types/react_query";
 import { cacher, invalidator } from "../extensions/cache";
 // @ts-ignore
@@ -93,9 +93,10 @@ const ChartsPage = ({ configWrapper }: { configWrapper: ConfigWrapper }) => {
 			cacher(() => getChart(activeOption.id as "tracks" | "artists", configWrapper.config))(props).then((res) =>
 				"artists" in res[0] ? parseLiked(res) : res,
 			),
+		retry: false,
 	});
 
-	const Status = useStatus(status, error);
+	const Status = useStatus(status, error, refetch);
 
 	const props = {
 		lhs: [`Top Charts - ${_.startCase(activeOption.id)}`],
@@ -126,4 +127,4 @@ const ChartsPage = ({ configWrapper }: { configWrapper: ConfigWrapper }) => {
 	return <PageContainer {...props}>{chartToRender}</PageContainer>;
 };
 
-export default React.memo(ChartsPage);
+export default ChartsPage;
