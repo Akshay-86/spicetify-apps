@@ -1,4 +1,4 @@
-import React from "react";
+const React = window.Spicetify.React;
 
 interface SpotifyCardProps {
 	type: "artist" | "album" | "lastfm" | "playlist";

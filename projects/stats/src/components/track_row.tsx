@@ -1,4 +1,4 @@
-import React from "react";
+const React = window.Spicetify.React;
 import type { LastFMMinifiedTrack, SpotifyMinifiedTrack } from "../types/stats_types";
 import { formatNumber } from "../pages/charts";
 

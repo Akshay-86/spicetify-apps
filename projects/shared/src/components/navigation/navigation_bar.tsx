@@ -1,9 +1,9 @@
-import React from "react";
-import ReactDOM from "react-dom";
+const React = window.Spicetify.React;
 
 function NavigationBar({ links, selected, storekey }: { links: string[], selected: string, storekey: string }) {
-    // @ts-ignore
-    const { Chip } = Spicetify.ReactComponent;
+    // Resolve Spicetify modules INSIDE the function to ensure they are loaded
+    const { Chip } = window.Spicetify.ReactComponent;
+    const { ReactDOM } = window.Spicetify;
 
     function navigate(page: string) {
         Spicetify.Platform.History.push(`/${storekey.split(":")[0]}/${page}`);

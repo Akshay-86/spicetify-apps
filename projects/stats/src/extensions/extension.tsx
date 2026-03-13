@@ -54,45 +54,26 @@ class SpicetifyStats {
 				def: true,
 				desc: "Requires Last.fm API key",
 			},
-			{
-				name: "Debug Console",
-				key: "show-debug-console",
-				type: "toggle",
-				def: false,
-				desc: "Shows retry logs and request diagnostics inside the app",
-				sectionHeader: "Debug",
-			},
-			{
-				name: "Spotify OAuth Token",
-				key: "oauth-token",
-				type: "text",
-				def: null,
-				placeholder: "Paste token OR full callback URL",
-				desc: `Uses a separate app quota to bypass rate limits.<br/><b>Login / Re-login:</b><br/>1. <a href="https://auth.musicpiechart.com/auth/login?redirect_to=https://huangdarren1106.github.io/callback" target="_blank" rel="noopener" style="color:#1db954;font-weight:bold">Login with Spotify</a><br/>2. After approval, copy the <b>full URL</b> from the callback page and paste it here.<br/>3. Save and refresh Stats. Token expires in about 1 hour.`,
-				sectionHeader: "Rate Limit Bypass",
-			},
 		],
 		"stats",
 	);
 }
-
-// @ts-ignore
 window.SpicetifyStats = new SpicetifyStats();
 
 (function stats() {
-	if (!window.Spicetify?.PopupModal || !window.Spicetify?.LocalStorage || !window.Spicetify?.Topbar || !window.Spicetify?.Platform?.History) {
-		setTimeout(stats, 300);
-		return;
-	}
-
 	const {
 		PopupModal,
 		LocalStorage,
 		Topbar,
 		Platform: { History },
-	} = window.Spicetify;
+	} = Spicetify;
 
-	const version = LocalStorage.get("stats:version");
+	if (!PopupModal || !LocalStorage || !Topbar || !History) {
+		setTimeout(stats, 300);
+		return;
+	}
+
+	const version = localStorage.getItem("stats:version");
 	if (!version || version !== STATS_VERSION) {
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i) as string;
@@ -100,7 +81,7 @@ window.SpicetifyStats = new SpicetifyStats();
 				localStorage.removeItem(key);
 			}
 		}
-		LocalStorage.set("stats:version", STATS_VERSION);
+		localStorage.setItem("stats:version", STATS_VERSION);
 	}
 
 	const styleLink = document.createElement("link");
