@@ -1,53 +1,91 @@
+import { DownArrow, UpArrow } from "../icons/arrows";
 import React from "react";
 
 interface Option {
-    id: string;
-    name: string;
+	id: string;
+	name: string;
 }
 
 interface DropdownMenuProps {
-    options: Option[];
-    activeOption: Option;
-    switchCallback: (option: Option) => void;
+	options: Option[];
+	activeOption: Option;
+	switchCallback: (option: Option) => void;
 }
 
-const SortDropdown = (props: DropdownMenuProps) => {
-    const { options, activeOption, switchCallback } = props;
+interface SortDropdownMenuProps extends DropdownMenuProps {
+	isReversed: boolean;
+}
 
-    return (
-        <div style={{ position: "relative", display: "inline-block" }}>
-            <select
-                value={activeOption.id}
-                onChange={(e) => {
-                    const option = options.find(o => o.id === e.target.value);
-                    if (option) switchCallback(option);
-                }}
-                style={{
-                    appearance: "none",
-                    background: "rgba(255,255,255,0.1)",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 32px 8px 12px",
-                    borderRadius: "20px",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    outline: "none"
-                }}
-            >
-                {options.map((option) => (
-                    <option key={option.id} value={option.id} style={{ background: "#282828", color: "white" }}>
-                        {option.name}
-                    </option>
-                ))}
-            </select>
-            <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="m14 6-6 6-6-6h12z"></path>
-                </svg>
-            </div>
-        </div>
-    );
+interface MenuItemProps {
+	option: Option;
+	isActive: boolean;
+	switchCallback: (option: Option) => void;
+}
+
+interface SortMenuItemProps extends MenuItemProps {
+	isReversed: boolean;
+}
+const SortMenuItem = (props: SortMenuItemProps) => {
+	const { ReactComponent } = Spicetify;
+	const { option, isActive, isReversed, switchCallback } = props;
+
+	const activeStyle = {
+		backgroundColor: "rgba(var(--spice-rgb-selected-row),.1)",
+	};
+
+	return (
+		<ReactComponent.MenuItem
+			trigger="click"
+			onClick={() => switchCallback(option)}
+			data-checked={isActive}
+			trailingIcon={isActive ? isReversed ? <DownArrow /> : <UpArrow /> : undefined}
+			style={isActive ? activeStyle : undefined}
+		>
+			{option.name}
+		</ReactComponent.MenuItem>
+	);
 };
 
-export default SortDropdown;
+const SortDropdownMenu = (props: SortDropdownMenuProps) => {
+	const { ContextMenu, Menu, TextComponent } = Spicetify.ReactComponent;
+	const { options, activeOption, isReversed, switchCallback } = props;
+
+	const optionItems = options.map((option) => {
+		return (
+			<SortMenuItem
+				option={option}
+				isActive={option === activeOption}
+				isReversed={isReversed}
+				switchCallback={switchCallback}
+			/>
+		);
+	});
+
+	const MenuWrapper = (props: Spicetify.ReactComponent.MenuProps) => {
+		return <Menu {...props}>{optionItems}</Menu>;
+	};
+
+	return (
+		<ContextMenu menu={<MenuWrapper />} trigger="click">
+			<button className="x-sortBox-sortDropdown" type="button" role="combobox" aria-expanded="false">
+				<TextComponent variant="mesto" semanticColor="textSubdued">
+					{activeOption.name}
+					{isReversed ? <DownArrow /> : <UpArrow />}
+				</TextComponent>
+				<svg
+					role="img"
+					height="16"
+					width="16"
+					aria-hidden="true"
+					className="Svg-img-16 Svg-img-16-icon Svg-img-icon Svg-img-icon-small"
+					viewBox="0 0 16 16"
+					data-encore-id="icon"
+				>
+					<path d="m14 6-6 6-6-6h12z"></path>
+				</svg>
+			</button>
+		</ContextMenu>
+	);
+};
+
+export default SortDropdownMenu;

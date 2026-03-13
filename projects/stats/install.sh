@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# EDIT THIS: Replace with your GitHub username and repo name
+# Spicetify Stats Installation Script (Fixed Version)
+# Source: https://github.com/Akshay-86/spicetify-apps
+
 GITHUB_USER="Akshay-86"
 REPO_NAME="spicetify-apps"
 BRANCH="main"
@@ -16,16 +18,27 @@ echo "Downloading and Installing Fixed Spicetify Stats..."
 mkdir -p "$STATS_DIR"
 mkdir -p "$EXTENSIONS_DIR"
 
-# Download files from your GitHub 'dist' folder
+# Download files from GitHub 'dist' folder
 BASE_URL="https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/$BRANCH/projects/stats/dist"
 
-curl -fsSL "$BASE_URL/index.js" -o "$STATS_DIR/index.js"
-curl -fsSL "$BASE_URL/index.css" -o "$STATS_DIR/index.css"
-curl -fsSL "$BASE_URL/manifest.json" -o "$STATS_DIR/manifest.json"
-curl -fsSL "$BASE_URL/extension.js" -o "$EXTENSIONS_DIR/stats_extension.js"
+# Download core files
+for file in index.js style.css manifest.json cache.js debug.js extension.js; do
+    echo "Downloading $file..."
+    curl -fsSL "$BASE_URL/$file" -o "$STATS_DIR/$file" || echo "Warning: Could not download $file"
+done
+
+# Install extension
+echo "Installing extension..."
+cp "$STATS_DIR/extension.js" "$EXTENSIONS_DIR/stats_extension.js"
 
 # Apply Spicetify config
-spicetify config custom_apps stats extensions stats_extension.js
+echo "Applying Spicetify configuration..."
+spicetify config custom_apps stats
+# Make sure it's in the extensions list
+if ! spicetify config extensions | grep -q "stats_extension.js"; then
+    spicetify config extensions stats_extension.js
+fi
+
 spicetify apply
 
-echo "Success! Stats installed from GitHub."
+echo "Success! Stats installed and applied."

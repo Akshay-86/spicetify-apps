@@ -1,7 +1,7 @@
 import type * as Spotify from "../types/spotify";
 import { statsDebug } from "../extensions/debug";
 
-const MAX_RATE_LIMIT_RETRIES = 0;
+const MAX_RATE_LIMIT_RETRIES = 3;
 const RATE_LIMIT_BASE_DELAY_MS = 1000;
 const RATE_LIMIT_MAX_DELAY_MS = 15000;
 
@@ -45,15 +45,8 @@ const getExternalToken = (): string | null => {
 	try {
 		const raw = localStorage.getItem("stats:config:oauth-token");
 		if (!raw) return null;
-
-		let value: string;
-		try {
-			const parsed = JSON.parse(raw);
-			value = typeof parsed === "string" ? parsed : raw;
-		} catch {
-			value = raw;
-		}
-
+		const value = JSON.parse(raw) as unknown;
+		if (typeof value !== "string") return null;
 		const token = extractAccessToken(value);
 		if (token && token !== value.trim()) {
 			localStorage.setItem("stats:config:oauth-token", JSON.stringify(token));

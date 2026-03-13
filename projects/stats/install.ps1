@@ -1,10 +1,18 @@
-# EDIT THIS: Replace with your GitHub username and repo name
+# Spicetify Stats Installation Script (Fixed Version)
+# Source: https://github.com/Akshay-86/spicetify-apps
+
 $githubUser = "Akshay-86"
 $repoName = "spicetify-apps"
 $branch = "main"
 
-$customAppsDir = "$env:APPDATA\spicetify\CustomApps"
-$extensionsDir = "$env:APPDATA\spicetify\Extensions"
+$spicetifyDir = "$env:APPDATA\spicetify"
+# Check if spicetify is using a different directory (e.g. Linux-like on Windows or custom path)
+if (!(Test-Path -Path $spicetifyDir)) {
+    $spicetifyDir = "$HOME\.spicetify"
+}
+
+$customAppsDir = "$spicetifyDir\CustomApps"
+$extensionsDir = "$spicetifyDir\Extensions"
 $statsDir = "$customAppsDir\stats"
 
 Write-Host "Downloading and Installing Fixed Spicetify Stats..." -ForegroundColor Cyan
@@ -13,16 +21,29 @@ Write-Host "Downloading and Installing Fixed Spicetify Stats..." -ForegroundColo
 If (!(Test-Path -Path $statsDir)) { New-Item -ItemType Directory -Path $statsDir -Force }
 If (!(Test-Path -Path $extensionsDir)) { New-Item -ItemType Directory -Path $extensionsDir -Force }
 
-# Download files from your GitHub 'dist' folder
+# Download files from GitHub 'dist' folder
 $baseUrl = "https://raw.githubusercontent.com/$githubUser/$repoName/$branch/projects/stats/dist"
 
-Invoke-WebRequest -Uri "$baseUrl/index.js" -OutFile "$statsDir\index.js"
-Invoke-WebRequest -Uri "$baseUrl/index.css" -OutFile "$statsDir\index.css"
-Invoke-WebRequest -Uri "$baseUrl/manifest.json" -OutFile "$statsDir\manifest.json"
-Invoke-WebRequest -Uri "$baseUrl/extension.js" -OutFile "$extensionsDir\stats_extension.js"
+$files = @("index.js", "style.css", "manifest.json", "cache.js", "debug.js", "extension.js")
+
+foreach ($file in $files) {
+    Write-Host "Downloading $file..."
+    Invoke-WebRequest -Uri "$baseUrl/$file" -OutFile "$statsDir\$file" -ErrorAction SilentlyContinue
+}
+
+# Install extension
+Write-Host "Installing extension..."
+Copy-Item -Path "$statsDir\extension.js" -Destination "$extensionsDir\stats_extension.js" -Force
 
 # Apply Spicetify config
-spicetify config custom_apps stats extensions stats_extension.js
+Write-Host "Applying Spicetify configuration..."
+spicetify config custom_apps stats
+# Check if extension is already enabled
+$exts = spicetify config extensions
+if ($exts -notmatch "stats_extension.js") {
+    spicetify config extensions stats_extension.js
+}
+
 spicetify apply
 
-Write-Host "Success! Stats installed from GitHub." -ForegroundColor Green
+Write-Host "Success! Stats installed and applied." -ForegroundColor Green

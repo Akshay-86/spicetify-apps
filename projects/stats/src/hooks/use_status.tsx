@@ -1,28 +1,19 @@
 import React from "react";
+import Status from "@shared/status/status";
 import { statsDebug } from "../extensions/debug";
 import { BYPASS_AUTH_URL, setExternalToken } from "../api/spotify";
 
-const LoadingSpinner = () => (
-	<div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
-		<div className="stats-loading-spinner" style={{
-			width: "50px",
-			height: "50px",
-			border: "3px solid rgba(255,255,255,0.1)",
-			borderTop: "3px solid #1db954",
-			borderRadius: "50%",
-			animation: "stats-spin 1s linear infinite"
-		}} />
-		<style>{`
-			@keyframes stats-spin {
-				0% { transform: rotate(0deg); }
-				100% { transform: rotate(360deg); }
-			}
-		`}</style>
-		<div style={{ fontSize: "18px", color: "white", opacity: 0.8 }}>Loading your stats...</div>
-	</div>
-);
+const AUTO_RETRY_DELAY_MS = 5 * 60 * 1000; // 5 minutes
+
+const formatCountdown = (s: number) => {
+	const m = Math.floor(s / 60);
+	const rem = s % 60;
+	return m > 0 ? `${m}m ${rem}s` : `${s}s`;
+};
 
 const LoginButton = () => {
+	const { ButtonPrimary } = Spicetify.ReactComponent;
+
 	const handleLogin = () => {
 		window.open(BYPASS_AUTH_URL, "spotify-auth", "width=800,height=600");
 
@@ -30,13 +21,13 @@ const LoginButton = () => {
 
 		const ModalContent = () => {
 			return (
-				<div className="stats-login-modal" style={{ padding: "20px", color: "white" }}>
+				<div className="stats-login-modal" style={{ padding: "10px" }}>
 					<p style={{ marginBottom: "10px" }}>1. A new window opened. Login and approve the app.</p>
-					<p style={{ marginBottom: "10px" }}>2. You will be redirected to a callback page.</p>
+					<p style={{ marginBottom: "10px" }}>2. You will be redirected to a callback page (e.g. <code>huangdarren1106.github.io/callback</code>).</p>
 					<p style={{ marginBottom: "10px" }}>3. Copy the <b>full URL</b> from your browser's address bar and paste it below:</p>
 					<textarea
 						id={inputId}
-						placeholder="Paste callback URL here..."
+						placeholder="Paste callback URL here (it starts with https://...)"
 						style={{
 							width: "100%",
 							height: "80px",
@@ -51,27 +42,44 @@ const LoginButton = () => {
 						}}
 					/>
 					<div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-						<button
-							style={{ padding: "10px 24px", borderRadius: "20px", backgroundColor: "#1db954", color: "white", fontWeight: "bold", border: "none", cursor: "pointer" }}
-							onClick={() => {
-								const input = document.getElementById(inputId) as HTMLTextAreaElement;
-								if (input && setExternalToken(input.value)) {
-									statsDebug.clearAll();
-									window.Spicetify.PopupModal.hide();
-									window.location.reload();
-								} else {
-									window.Spicetify.showNotification("Invalid token or URL.");
-								}
-							}}
-						>
-							Save & Refresh
-						</button>
+						{ButtonPrimary ? (
+							<ButtonPrimary
+								onClick={() => {
+									const input = document.getElementById(inputId) as HTMLTextAreaElement;
+									if (input && setExternalToken(input.value)) {
+										statsDebug.clearAll();
+										Spicetify.PopupModal.hide();
+										window.location.reload();
+									} else {
+										Spicetify.showNotification("Invalid token or URL. Please try again.");
+									}
+								}}
+							>
+								Save & Refresh
+							</ButtonPrimary>
+						) : (
+							<button
+								style={{ padding: "8px 16px", borderRadius: "20px", backgroundColor: "#1db954", color: "white", fontWeight: "bold", border: "none", cursor: "pointer" }}
+								onClick={() => {
+									const input = document.getElementById(inputId) as HTMLTextAreaElement;
+									if (input && setExternalToken(input.value)) {
+										statsDebug.clearAll();
+										Spicetify.PopupModal.hide();
+										window.location.reload();
+									} else {
+										Spicetify.showNotification("Invalid token or URL. Please try again.");
+									}
+								}}
+							>
+								Save & Refresh
+							</button>
+						)}
 					</div>
 				</div>
 			);
 		};
 
-		window.Spicetify.PopupModal.display({
+		Spicetify.PopupModal.display({
 			title: "Login with Spotify",
 			// @ts-ignore
 			content: <ModalContent />,
@@ -79,48 +87,88 @@ const LoginButton = () => {
 		});
 	};
 
+	if (!ButtonPrimary) return <button style={{ marginTop: "10px" }} onClick={handleLogin}>Login with Spotify</button>;
+
 	return (
-		<button 
-			style={{ padding: "14px 28px", borderRadius: "999px", background: "#1db954", border: "none", color: "white", fontWeight: "bold", cursor: "pointer", fontSize: "16px" }} 
-			onClick={handleLogin}
-		>
-			Login with Spotify to Fix 429
-		</button>
+		<div style={{ width: "100%", display: "flex", justifyContent: "center", position: "relative", zIndex: 10 }}>
+			<ButtonPrimary onClick={handleLogin}>Login with Spotify</ButtonPrimary>
+		</div>
 	);
 };
 
 const useStatus = (status: "success" | "error" | "pending", error: Error | null, refetch?: () => void) => {
-	if (status === "success") return null;
+	const [snapshot, setSnapshot] = React.useState(() => statsDebug.getSnapshot());
+	const [now, setNow] = React.useState(Date.now());
+	const [autoRetryIn, setAutoRetryIn] = React.useState<number | null>(null);
+	const nextRetry = snapshot.activeRetries[0];
+
+	React.useEffect(() => {
+		setSnapshot(statsDebug.getSnapshot());
+		return statsDebug.subscribe(() => setSnapshot(statsDebug.getSnapshot()));
+	}, []);
+
+	React.useEffect(() => {
+		if (!nextRetry) return;
+		const timer = window.setInterval(() => setNow(Date.now()), 250);
+		return () => window.clearInterval(timer);
+	}, [nextRetry]);
+
+	React.useEffect(() => {
+		if (status !== "error") {
+			setAutoRetryIn(null);
+			return;
+		}
+		const retryAt = Date.now() + AUTO_RETRY_DELAY_MS;
+		setAutoRetryIn(Math.ceil(AUTO_RETRY_DELAY_MS / 1000));
+		const interval = window.setInterval(() => {
+			const remaining = Math.ceil((retryAt - Date.now()) / 1000);
+			if (remaining <= 0) {
+				clearInterval(interval);
+				setAutoRetryIn(null);
+				refetch?.();
+			} else {
+				setAutoRetryIn(remaining);
+			}
+		}, 1000);
+		return () => clearInterval(interval);
+	}, [status, refetch]);
 
 	if (status === "pending") {
-		return (
-			<div style={{ display: "flex", width: "100%", height: "80vh", justifyContent: "center", alignItems: "center" }}>
-				<LoadingSpinner />
-			</div>
-		);
+		if (nextRetry) {
+			const seconds = Math.max(0, Math.ceil((nextRetry.retryAt - now) / 1000));
+			return (
+				<div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
+					<Status
+						icon="library"
+						heading="Retrying"
+						subheading={`Spotify rate-limited the request. Retrying automatically in ${seconds}s. Open Debug Console for details.`}
+					/>
+					<LoginButton />
+				</div>
+			);
+		}
+		return <Status icon="library" heading="Loading" subheading="Please wait, this may take a moment" />;
 	}
 
-	const isRateLimited = error?.message.includes("429");
+	if (status === "error") {
+		if (error?.message.includes("status 429") || error?.message.includes("429")) {
+			const countdownText = autoRetryIn !== null ? ` Auto-retrying in ${formatCountdown(autoRetryIn)}.` : "";
+			return (
+				<div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%", height: "100%", justifyContent: "center", alignItems: "center" }}>
+					<Status
+						icon="error"
+						heading="Rate Limited"
+						subheading={`Spotify is temporarily limiting requests.${countdownText} Or click the Refresh button to retry now.`}
+					/>
+					<LoginButton />
+				</div>
+			);
+		}
+		const countdownText = autoRetryIn !== null ? ` Auto-retrying in ${formatCountdown(autoRetryIn)}.` : "";
+		return <Status icon="error" heading="Error" subheading={`${error?.message || "An unknown error occurred"}${countdownText}`} />;
+	}
 
-	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: "30px", width: "100%", height: "100%", justifyContent: "center", alignItems: "center", padding: "60px", textAlign: "center" }}>
-			<div style={{ color: "white" }}>
-				<h1 style={{ fontSize: "32px", marginBottom: "10px" }}>{isRateLimited ? "Spotify Rate Limit Detected" : "App Error"}</h1>
-				<p style={{ opacity: 0.7, fontSize: "18px" }}>{error?.message || "Bypass the shared limit by logging in with your own token."}</p>
-			</div>
-			
-			<div style={{ background: "rgba(255,255,255,0.03)", padding: "30px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
-				<p style={{ marginBottom: "20px", fontSize: "14px", opacity: 0.8 }}>This bypass uses a separate app quota to ensure your stats always load.</p>
-				<LoginButton />
-			</div>
-
-			{!isRateLimited && (
-				<button onClick={() => window.location.reload()} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "8px 16px", borderRadius: "999px", cursor: "pointer" }}>
-					Retry Connection
-				</button>
-			)}
-		</div>
-	);
+	return null;
 };
 
 export default useStatus;
