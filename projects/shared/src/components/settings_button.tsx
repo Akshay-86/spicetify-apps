@@ -27,8 +27,9 @@ function SettingsButton(props: SettingsButtonProps): React.ReactElement<HTMLButt
                 buttonSize="sm"
                 onClick={configWrapper.launchModal}
                 aria-label="Settings"
-                iconOnly={SettingsIcon}
-            />
+            >
+                <SettingsIcon />
+            </ButtonTertiary>
         </TooltipWrapper>
     );
 }

@@ -17,6 +17,11 @@ interface MenuItemProps {
     switchCallback: (option: Option) => void;
 }
 
+function getOptionLabel(option: Option | undefined): string {
+    if (!option) return "";
+    return typeof option.name === "string" ? option.name : String(option.name);
+}
+
 function CheckIcon() {
     return (
         <Spicetify.ReactComponent.IconComponent
@@ -45,17 +50,18 @@ const MenuItem = (props: MenuItemProps) => {
             trailingIcon={isActive ? <CheckIcon /> : undefined}
             style={isActive ? activeStyle : undefined}
         >
-            {option.name}
+            {getOptionLabel(option)}
         </ReactComponent.MenuItem>
     );
 };
 
 const DropdownMenu = (props: DropdownMenuProps) => {
-    const { ContextMenu, Menu, TextComponent } = Spicetify.ReactComponent;
+    const { ContextMenu, Menu } = Spicetify.ReactComponent;
     const { options, activeOption, switchCallback } = props;
+    const activeOptionLabel = getOptionLabel(activeOption);
 
     const optionItems = options.map((option) => {
-        return <MenuItem option={option} isActive={option === activeOption} switchCallback={switchCallback} />;
+        return <MenuItem key={option.id} option={option} isActive={option === activeOption} switchCallback={switchCallback} />;
     });
 
     const MenuWrapper = (props: Spicetify.ReactComponent.MenuProps) => {
@@ -65,9 +71,9 @@ const DropdownMenu = (props: DropdownMenuProps) => {
     return (
         <ContextMenu menu={<MenuWrapper />} trigger="click">
             <button className="x-sortBox-sortDropdown" type="button" role="combobox" aria-expanded="false">
-                <TextComponent variant="mesto" semanticColor="textSubdued">
-                    {activeOption.name}
-                </TextComponent>
+                <span className="main-type-mesto" style={{ color: "var(--spice-subtext)" }}>
+                    {activeOptionLabel}
+                </span>
                 <svg
                     role="img"
                     height="16"

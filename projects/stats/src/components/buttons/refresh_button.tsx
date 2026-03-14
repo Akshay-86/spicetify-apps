@@ -23,7 +23,9 @@ function RefreshButton(props: RefreshButtonProps): React.ReactElement<HTMLButton
 
 	return (
 		<TooltipWrapper label={"Refresh"} renderInline={true} placement="top">
-			<ButtonTertiary buttonSize="sm" onClick={callback} aria-label="Refresh" iconOnly={RefreshIcon} />
+			<ButtonTertiary buttonSize="sm" onClick={callback} aria-label="Refresh">
+				<RefreshIcon />
+			</ButtonTertiary>
 		</TooltipWrapper>
 	);
 }
