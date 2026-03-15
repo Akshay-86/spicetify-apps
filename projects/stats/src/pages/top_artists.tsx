@@ -10,7 +10,7 @@ import * as spotify from "../api/spotify";
 import { SpotifyRange } from "../types/spotify";
 import { convertArtist, minifyArtist } from "../utils/converter";
 import useStatus from "../hooks/use_status";
-import { useQuery } from "@shared/types/react_query";
+import { useQuery } from "../hooks/use_query";
 import { cacher, invalidator } from "../extensions/cache";
 
 export const getTopArtists = async (timeRange: SpotifyRange, config: Config) => {
@@ -58,6 +58,7 @@ const ArtistsPage = ({ configWrapper }: { configWrapper: ConfigWrapper }) => {
 
 	const artistCards = topArtists.map((artist, index) => (
 		<SpotifyCard
+			key={`${artist.uri}-${index}`}
 			type={"artist"}
 			provider={artist.type}
 			uri={artist.uri}

@@ -11,7 +11,7 @@ import SettingsButton from "@shared/components/settings_button";
 import { DropdownOptions } from "./top_artists";
 import type { SpotifyRange } from "../types/spotify";
 import { convertTrack, minifyTrack } from "../utils/converter";
-import { useQuery } from "@shared/types/react_query";
+import { useQuery } from "../hooks/use_query";
 import useStatus from "../hooks/use_status";
 import { cacher, invalidator } from "../extensions/cache";
 import { parseLiked } from "../utils/track_helper";

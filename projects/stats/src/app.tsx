@@ -80,8 +80,6 @@ const waitForReady = async (callback: () => void) => {
     // Robust check for Spicetify and sub-modules
 	if (
         window.Spicetify?.Platform?.RootlistAPI && 
-        window.Spicetify?.ReactQuery?.useQuery && 
-        window.Spicetify?.ReactDOM?.createPortal &&
         window.SpicetifyStats?.ConfigWrapper?.Config
     ) {
 		callback();

@@ -17,7 +17,7 @@ import RefreshButton from "../components/buttons/refresh_button";
 import SettingsButton from "@shared/components/settings_button";
 import { convertArtist, convertTrack } from "../utils/converter";
 import useStatus from "../hooks/use_status";
-import { useQuery } from "@shared/types/react_query";
+import { useQuery } from "../hooks/use_query";
 import { cacher, invalidator } from "../extensions/cache";
 // @ts-ignore
 import _ from "lodash";
@@ -52,6 +52,7 @@ const ArtistChart = ({ artists }: { artists: (LastFMMinifiedArtist | SpotifyMini
 			{artists.map((artist, index) => {
 				return (
 					<SpotifyCard
+						key={`${artist.uri}-${index}`}
 						type={"artist"}
 						provider={artist.type}
 						uri={artist.uri}

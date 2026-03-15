@@ -11,82 +11,34 @@ interface DropdownMenuProps {
     switchCallback: (option: Option) => void;
 }
 
-interface MenuItemProps {
-    option: Option;
-    isActive: boolean;
-    switchCallback: (option: Option) => void;
-}
-
 function getOptionLabel(option: Option | undefined): string {
     if (!option) return "";
     return typeof option.name === "string" ? option.name : String(option.name);
 }
 
-function CheckIcon() {
-    return (
-        <Spicetify.ReactComponent.IconComponent
-            iconSize={16}
-            semanticColor="textBase"
-            dangerouslySetInnerHTML={{
-                __html: '<svg xmlns="http://www.w3.org/2000/svg"><path d="M15.53 2.47a.75.75 0 0 1 0 1.06L4.907 14.153.47 9.716a.75.75 0 0 1 1.06-1.06l3.377 3.376L14.47 2.47a.75.75 0 0 1 1.06 0z"/></svg>',
-            }}
-        />
-    );
-}
-
-const MenuItem = (props: MenuItemProps) => {
-    const { ReactComponent } = Spicetify;
-    const { option, isActive, switchCallback } = props;
-
-    const activeStyle = {
-        backgroundColor: "rgba(var(--spice-rgb-selected-row),.1)",
-    };
-
-    return (
-        <ReactComponent.MenuItem
-            trigger="click"
-            onClick={() => switchCallback(option)}
-            data-checked={isActive}
-            trailingIcon={isActive ? <CheckIcon /> : undefined}
-            style={isActive ? activeStyle : undefined}
-        >
-            {getOptionLabel(option)}
-        </ReactComponent.MenuItem>
-    );
-};
-
 const DropdownMenu = (props: DropdownMenuProps) => {
-    const { ContextMenu, Menu } = Spicetify.ReactComponent;
     const { options, activeOption, switchCallback } = props;
-    const activeOptionLabel = getOptionLabel(activeOption);
 
-    const optionItems = options.map((option) => {
-        return <MenuItem key={option.id} option={option} isActive={option === activeOption} switchCallback={switchCallback} />;
-    });
-
-    const MenuWrapper = (props: Spicetify.ReactComponent.MenuProps) => {
-        return <Menu {...props}>{optionItems}</Menu>;
+    const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const nextOption = options.find((option) => option.id === event.target.value);
+        if (nextOption) switchCallback(nextOption);
     };
 
     return (
-        <ContextMenu menu={<MenuWrapper />} trigger="click">
-            <button className="x-sortBox-sortDropdown" type="button" role="combobox" aria-expanded="false">
-                <span className="main-type-mesto" style={{ color: "var(--spice-subtext)" }}>
-                    {activeOptionLabel}
-                </span>
-                <svg
-                    role="img"
-                    height="16"
-                    width="16"
-                    aria-hidden="true"
-                    className="Svg-img-16 Svg-img-16-icon Svg-img-icon Svg-img-icon-small"
-                    viewBox="0 0 16 16"
-                    data-encore-id="icon"
-                >
-                    <path d="m14 6-6 6-6-6h12z"></path>
-                </svg>
-            </button>
-        </ContextMenu>
+        <label className="x-sortBox-sortDropdown stats-filterDropdown">
+            <select
+                className="stats-filterDropdown-select"
+                aria-label="Select filter"
+                value={activeOption.id}
+                onChange={handleChange}
+            >
+                {options.map((option) => (
+                    <option key={option.id} value={option.id}>
+                        {getOptionLabel(option)}
+                    </option>
+                ))}
+            </select>
+        </label>
     );
 };
 

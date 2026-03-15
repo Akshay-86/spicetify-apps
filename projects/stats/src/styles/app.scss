@@ -1,10 +1,15 @@
 #stats-app {
+    .stats-gridInlineSection {
+        position: relative;
+    }
+
     .stats-gridInline {
         --grid-gap: 24px;
         grid-template-columns: repeat(10, 180px) !important;
         overflow-x: hidden;
         scroll-behavior: smooth;
         margin-top: 5px;
+        padding-inline: 2px;
         transform: none !important;
         will-change: auto !important;
     }
@@ -12,18 +17,15 @@
     .grid:nth-child(2) {
         margin-top: 24px;
     }
-
-
-
-    [data-scroll="both"] {
+    .stats-gridInlineSection[data-scroll="both"] .stats-gridInline {
         mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
     }
 
-    [data-scroll="end"] {
+    .stats-gridInlineSection[data-scroll="end"] .stats-gridInline {
         mask-image: linear-gradient(to right, transparent, black 10%);
     }
 
-    [data-scroll="start"] {
+    .stats-gridInlineSection[data-scroll="start"] .stats-gridInline {
         mask-image: linear-gradient(to right, black 90%, transparent);
     }
 
@@ -40,18 +42,52 @@
     }
 
     .stats-scrollButton {
+        position: absolute;
+        top: calc(50% - 28px);
+        z-index: 2;
         width: 40px;
-        border-radius: 8px;
-        border: none;
+        height: 40px;
+        border-radius: 999px;
+        border: 1px solid rgba(var(--spice-rgb-selected-row), 0.18);
         padding: 0;
-        margin-right: 5px;
-        background-color: var(--spice-player);
-        color: var(--spice-subtext);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(var(--spice-rgb-player), 0.94);
+        color: var(--spice-text);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+        transition: opacity 120ms ease, transform 120ms ease, background-color 120ms ease, border-color 120ms ease;
 
         &:hover {
             background-color: var(--spice-card);
-            color: var(--spice-text);
+            border-color: rgba(var(--spice-rgb-selected-row), 0.28);
         }
+    }
+
+    .stats-scrollButton--left {
+        left: 8px;
+    }
+
+    .stats-scrollButton--right {
+        right: 8px;
+    }
+
+    .stats-scrollChevron {
+        width: 16px;
+        height: 16px;
+        display: block;
+    }
+
+    .stats-scrollChevron--right {
+        transform: scaleX(-1);
+    }
+
+    .stats-gridInlineSection[data-scroll="start"] .stats-scrollButton--left,
+    .stats-gridInlineSection[data-scroll="end"] .stats-scrollButton--right {
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(0.92);
     }
 
     .stats-tracklistHeader>div {
@@ -115,6 +151,31 @@
         background-color: transparent;
         border: none;
         fill: currentColor;
+    }
+
+    .main-trackList-rowSectionEnd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        min-width: 112px;
+    }
+
+    .main-trackList-rowDuration {
+        min-width: 40px;
+        text-align: right;
+    }
+
+    .main-trackList-rowHeartButton,
+    .main-trackList-rowMoreButton,
+    .main-trackList-durationHeader {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        line-height: 1;
     }
 
     .main-trackList-rowPlayPauseIcon,
