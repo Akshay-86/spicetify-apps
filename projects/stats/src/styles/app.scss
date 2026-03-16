@@ -1,4 +1,6 @@
 #stats-app {
+    --stats-track-grid-template: [index] var(--tracklist-index-column-width, 16px) [first] minmax(72px, var(--col1, 6fr)) [var1] minmax(72px, var(--col2, 4fr)) [var2] minmax(72px, var(--col3, 3fr)) [last] minmax(64px, var(--col4, 1fr));
+
     .stats-gridInlineSection {
         position: relative;
     }
@@ -33,6 +35,12 @@
         display: flex;
         gap: 24px;
         align-items: center;
+        flex-wrap: wrap;
+
+        >* {
+            flex: 1 1 160px;
+            min-width: 0;
+        }
     }
 
     .stats-trackPageTitle {
@@ -154,16 +162,29 @@
     }
 
     .main-trackList-rowSectionEnd {
-        display: inline-flex;
+        display: grid;
+        grid-template-columns: 16px minmax(44px, auto) 16px;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: end;
         gap: 12px;
         min-width: 112px;
+        padding-inline-end: 8px;
+        box-sizing: border-box;
+    }
+
+    .main-trackList-trackListHeader .main-trackList-rowSectionEnd {
+        grid-template-columns: 16px minmax(44px, auto) 16px;
+        justify-content: center;
+    }
+
+    .main-trackList-trackListHeader .main-trackList-durationHeader {
+        grid-column: 2;
+        justify-self: center;
     }
 
     .main-trackList-rowDuration {
         min-width: 40px;
-        text-align: right;
+        text-align: center;
     }
 
     .main-trackList-rowHeartButton,
@@ -185,6 +206,14 @@
 
     .main-trackList-rowBadges {
         color: var(--spice-text);
+    }
+
+    @media (max-width: 1200px) {
+        --stats-track-grid-template: [index] var(--tracklist-index-column-width, 16px) [first] minmax(120px, 1fr) [last] minmax(112px, auto);
+
+        .main-trackList-trackListRowGrid .main-trackList-rowSectionVariable {
+            display: none;
+        }
     }
 
     .extend-button {

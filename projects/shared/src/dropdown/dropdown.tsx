@@ -18,27 +18,63 @@ function getOptionLabel(option: Option | undefined): string {
 
 const DropdownMenu = (props: DropdownMenuProps) => {
     const { options, activeOption, switchCallback } = props;
+    const [open, setOpen] = React.useState(false);
+    const rootRef = React.useRef<HTMLDivElement>(null);
 
-    const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const nextOption = options.find((option) => option.id === event.target.value);
-        if (nextOption) switchCallback(nextOption);
+    React.useEffect(() => {
+        const onPointerDown = (event: MouseEvent) => {
+            if (!rootRef.current) return;
+            if (!rootRef.current.contains(event.target as Node)) setOpen(false);
+        };
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+
+        window.addEventListener("mousedown", onPointerDown);
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("mousedown", onPointerDown);
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, []);
+
+    const selectOption = (option: Option) => {
+        switchCallback(option);
+        setOpen(false);
     };
 
     return (
-        <label className="x-sortBox-sortDropdown stats-filterDropdown">
-            <select
-                className="stats-filterDropdown-select"
+        <div className="x-sortBox-sortDropdown stats-filterDropdown" ref={rootRef}>
+            <button
+                type="button"
+                className="stats-filterDropdown-trigger"
                 aria-label="Select filter"
-                value={activeOption.id}
-                onChange={handleChange}
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                onClick={() => setOpen((prev) => !prev)}
             >
-                {options.map((option) => (
-                    <option key={option.id} value={option.id}>
-                        {getOptionLabel(option)}
-                    </option>
-                ))}
-            </select>
-        </label>
+                <span>{getOptionLabel(activeOption)}</span>
+            </button>
+            {open && (
+                <ul className="stats-filterDropdown-menu" role="listbox" aria-label="Filter options">
+                    {options.map((option) => {
+                        const active = option.id === activeOption.id;
+                        return (
+                            <li key={option.id} role="option" aria-selected={active}>
+                                <button
+                                    type="button"
+                                    className={`stats-filterDropdown-option${active ? " is-active" : ""}`}
+                                    onClick={() => selectOption(option)}
+                                >
+                                    {getOptionLabel(option)}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </div>
     );
 };
 
