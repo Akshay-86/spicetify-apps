@@ -1,7 +1,7 @@
 import React from "react";
 import Status from "@shared/status/status";
 import { statsDebug } from "../extensions/debug";
-import { BYPASS_AUTH_URL, setExternalToken } from "../api/spotify";
+import { beginExternalOAuth } from "../api/spotify";
 
 const AUTO_RETRY_DELAY_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -15,76 +15,7 @@ const LoginButton = () => {
 	const { ButtonPrimary } = Spicetify.ReactComponent;
 
 	const handleLogin = () => {
-		window.open(BYPASS_AUTH_URL, "spotify-auth", "width=800,height=600");
-
-		const inputId = "stats-oauth-token-input";
-
-		const ModalContent = () => {
-			return (
-				<div className="stats-login-modal" style={{ padding: "10px" }}>
-					<p style={{ marginBottom: "10px" }}>1. A new window opened. Login and approve the app.</p>
-					<p style={{ marginBottom: "10px" }}>2. You will be redirected to a callback page (e.g. <code>huangdarren1106.github.io/callback</code>).</p>
-					<p style={{ marginBottom: "10px" }}>3. Copy the <b>full URL</b> from your browser's address bar and paste it below:</p>
-					<textarea
-						id={inputId}
-						placeholder="Paste callback URL here (it starts with https://...)"
-						style={{
-							width: "100%",
-							height: "80px",
-							marginTop: "10px",
-							padding: "12px",
-							borderRadius: "8px",
-							backgroundColor: "rgba(255,255,255,0.05)",
-							color: "white",
-							border: "1px solid rgba(255,255,255,0.1)",
-							outline: "none",
-							resize: "none",
-						}}
-					/>
-					<div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-						{ButtonPrimary ? (
-							<ButtonPrimary
-								onClick={() => {
-									const input = document.getElementById(inputId) as HTMLTextAreaElement;
-									if (input && setExternalToken(input.value)) {
-										statsDebug.clearAll();
-										Spicetify.PopupModal.hide();
-										window.location.reload();
-									} else {
-										Spicetify.showNotification("Invalid token or URL. Please try again.");
-									}
-								}}
-							>
-								Save & Refresh
-							</ButtonPrimary>
-						) : (
-							<button
-								style={{ padding: "8px 16px", borderRadius: "20px", backgroundColor: "#1db954", color: "white", fontWeight: "bold", border: "none", cursor: "pointer" }}
-								onClick={() => {
-									const input = document.getElementById(inputId) as HTMLTextAreaElement;
-									if (input && setExternalToken(input.value)) {
-										statsDebug.clearAll();
-										Spicetify.PopupModal.hide();
-										window.location.reload();
-									} else {
-										Spicetify.showNotification("Invalid token or URL. Please try again.");
-									}
-								}}
-							>
-								Save & Refresh
-							</button>
-						)}
-					</div>
-				</div>
-			);
-		};
-
-		Spicetify.PopupModal.display({
-			title: "Login with Spotify",
-			// @ts-ignore
-			content: <ModalContent />,
-			isLarge: false,
-		});
+		void beginExternalOAuth();
 	};
 
 	if (!ButtonPrimary) return <button style={{ marginTop: "10px" }} onClick={handleLogin}>Login with Spotify</button>;
