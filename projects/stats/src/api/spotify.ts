@@ -5,8 +5,9 @@ const MAX_RATE_LIMIT_RETRIES = 3;
 const RATE_LIMIT_BASE_DELAY_MS = 1000;
 const RATE_LIMIT_MAX_DELAY_MS = 15000;
 
-export const BYPASS_CLIENT_ID = "b24e0e2c955544c2a1124973f7428cf5";
-export const BYPASS_REDIRECT_URI = "http://127.0.0.1:3000/auth/callback";
+export const BYPASS_CLIENT_ID = "edd26169edf844db89a92b56cbb54b85";
+export const BYPASS_REDIRECT_URI = "https://huangdarren1106.github.io/callback";
+export const BYPASS_AUTH_URL = `https://auth.musicpiechart.com/auth/login?redirect_to=${BYPASS_REDIRECT_URI}`;
 
 const OAUTH_BUNDLE_KEY = "stats:oauth:bundle";
 const OAUTH_PKCE_KEY = "stats:oauth:pkce";
@@ -30,8 +31,6 @@ type PkcePayload = {
 	codeVerifier: string;
 	createdAt: number;
 };
-
-let refreshInFlight: Promise<OAuthBundle | null> | null = null;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -161,143 +160,19 @@ const exchangeCodeForTokens = async (code: string, state?: string): Promise<OAut
 	return bundle;
 };
 
-const refreshExternalToken = async (): Promise<OAuthBundle | null> => {
-	const current = readOAuthBundle();
-	if (!current?.refreshToken) return null;
-
-	const body = new URLSearchParams({
-		client_id: BYPASS_CLIENT_ID,
-		grant_type: "refresh_token",
-		refresh_token: current.refreshToken,
-	});
-
-	const response = await fetch("https://accounts.spotify.com/api/token", {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body,
-	});
-
-	if (!response.ok) return null;
-
-	const payload = (await response.json()) as {
-		access_token?: string;
-		refresh_token?: string;
-		expires_in?: number;
-		scope?: string;
-		token_type?: string;
-	};
-
-	if (!payload.access_token) return null;
-
-	const nextBundle: OAuthBundle = {
-		accessToken: payload.access_token,
-		refreshToken: payload.refresh_token ?? current.refreshToken,
-		expiresAt: toExpiresAt(payload.expires_in),
-		scope: payload.scope ?? current.scope,
-		tokenType: payload.token_type ?? current.tokenType,
-	};
-
-	writeOAuthBundle(nextBundle);
-	saveAccessTokenCompat(nextBundle.accessToken);
-	return nextBundle;
-};
-
-const ensureExternalAccessToken = async (): Promise<string | null> => {
+const ensureExternalAccessToken = (): string | null => {
 	const bundle = readOAuthBundle();
 	if (!bundle) return null;
 
 	if (bundle.expiresAt > Date.now()) return bundle.accessToken;
-	if (!bundle.refreshToken) return null;
-
-	if (!refreshInFlight) {
-		refreshInFlight = refreshExternalToken().finally(() => {
-			refreshInFlight = null;
-		});
-	}
-
-	const refreshed = await refreshInFlight;
-	return refreshed?.accessToken ?? null;
+	clearExternalToken();
+	return null;
 };
 
 const hasExternalAuth = (): boolean => Boolean(readOAuthBundle());
 
-export const beginExternalOAuth = async (): Promise<void> => {
-	const state = randomString(16);
-	const codeVerifier = randomString(64);
-	const challenge = base64UrlEncode(await sha256(codeVerifier));
-
-	writePkcePayload({ state, codeVerifier, createdAt: Date.now() });
-
-	const authUrl = new URL("https://accounts.spotify.com/authorize");
-	authUrl.searchParams.set("client_id", BYPASS_CLIENT_ID);
-	authUrl.searchParams.set("response_type", "code");
-	authUrl.searchParams.set("redirect_uri", BYPASS_REDIRECT_URI);
-	authUrl.searchParams.set("scope", OAUTH_SCOPE);
-	authUrl.searchParams.set("code_challenge_method", "S256");
-	authUrl.searchParams.set("code_challenge", challenge);
-	authUrl.searchParams.set("state", state);
-
-	const popup = window.open(authUrl.toString(), "spotify-auth", "width=500,height=700,left=200,top=100");
-	if (!popup) {
-		Spicetify.showNotification("Could not open login popup. Please allow popups and try again.", true);
-		return;
-	}
-
-	Spicetify.showNotification("Complete Spotify login in the popup window...");
-
-	await new Promise<void>((resolve) => {
-		const TIMEOUT_MS = 5 * 60 * 1000;
-		const POLL_MS = 500;
-		let done = false;
-
-		const cleanup = () => {
-			clearInterval(pollInterval);
-			clearTimeout(timeoutId);
-			done = true;
-		};
-
-		const pollInterval = setInterval(() => {
-			if (done) return;
-
-			if (popup.closed) {
-				cleanup();
-				resolve();
-				return;
-			}
-
-			try {
-				const url = popup.location.href;
-				if (url && url.startsWith(BYPASS_REDIRECT_URI)) {
-					cleanup();
-					popup.close();
-					const params = new URL(url).searchParams;
-					const code = params.get("code");
-					const stateParam = params.get("state") ?? undefined;
-					if (code) {
-						void exchangeCodeForTokens(code, stateParam).then((bundle) => {
-							if (bundle) {
-								Spicetify.showNotification("Spotify login successful! Refreshing...");
-								setTimeout(() => window.location.reload(), 1500);
-							} else {
-								Spicetify.showNotification("Login failed — could not exchange code. Please try again.", true);
-							}
-						});
-					} else {
-						Spicetify.showNotification("Login cancelled or failed. Please try again.", true);
-					}
-					resolve();
-				}
-			} catch {
-				// Still on cross-origin accounts.spotify.com — keep polling
-			}
-		}, POLL_MS);
-
-		const timeoutId = setTimeout(() => {
-			cleanup();
-			if (!popup.closed) popup.close();
-			resolve();
-		}, TIMEOUT_MS);
-	});
+export const beginExternalOAuth = (): void => {
+	window.open(BYPASS_AUTH_URL, "spotify-auth", "width=800,height=600");
 };
 
 export const extractAccessToken = (input: string): string | null => {
@@ -378,15 +253,30 @@ const clearExternalToken = (): void => {
 	} catch { /* ignore */ }
 };
 
-const getAccessToken = async (): Promise<string> => {
-	const external = await ensureExternalAccessToken();
-	if (external) return external;
-	const token = (Spicetify.Platform?.Session as { accessToken?: string })?.accessToken;
-	if (!token) {
-		console.error("[stats] Spotify access token not available.");
-		throw new Error("Spotify access token not available. Try restarting Spotify.");
+type CosmosErrorLike = { code?: number; status?: number; message?: string; error?: { status?: number; message?: string } | string };
+
+const getCosmosStatus = (error: unknown): number => {
+	const e = error as CosmosErrorLike;
+	const direct = Number(e?.status ?? e?.code ?? 0);
+	if (direct > 0) return direct;
+	const nested = typeof e?.error === "object" && e.error ? Number(e.error.status ?? 0) : 0;
+	if (nested > 0) return nested;
+	const msg = (e?.message ?? "").toLowerCase();
+	if (msg.includes("429")) return 429;
+	if (msg.includes("401")) return 401;
+	return 0;
+};
+
+const tryCosmosSpotifyGet = async <T>(url: string): Promise<{ ok: true; data: T } | { ok: false; status: number }> => {
+	try {
+		const response = await Spicetify.CosmosAsync.get(url) as T & CosmosErrorLike;
+		if (response && (response.code || response.error)) {
+			return { ok: false, status: getCosmosStatus(response) };
+		}
+		return { ok: true, data: response as T };
+	} catch (error) {
+		return { ok: false, status: getCosmosStatus(error) };
 	}
-	return token;
 };
 
 export const apiFetch = async <T>(name: string, url: string, log = true): Promise<T> => {
@@ -397,9 +287,35 @@ export const apiFetch = async <T>(name: string, url: string, log = true): Promis
 		try {
 			const timeStart = window.performance.now();
 			const isSpotifyApi = url.includes("api.spotify.com");
+
+			if (isSpotifyApi) {
+				const cosmos = await tryCosmosSpotifyGet<T>(url);
+				if (cosmos.ok) {
+					statsDebug.clearRetry(requestKey);
+					statsDebug.info(`Request succeeded via Cosmos: ${name}`, {
+						url,
+						durationMs: Math.round(window.performance.now() - timeStart),
+					});
+					if (log) console.log("stats -", name, "fetch time:", window.performance.now() - timeStart);
+					return cosmos.data;
+				}
+
+				if (cosmos.status !== 429 && cosmos.status !== 401) {
+					statsDebug.clearRetry(requestKey);
+					throw new Error(
+						`Failed to fetch the info from server (status ${cosmos.status || "unknown"}). Try again later. ${name.includes("lfm") ? "Check your LFM API key and username." : ""}`.trim(),
+					);
+				}
+			}
+
 			const headers: Record<string, string> = { "Content-Type": "application/json" };
 			if (isSpotifyApi) {
-				headers["Authorization"] = `Bearer ${await getAccessToken()}`;
+				const bypass = ensureExternalAccessToken();
+				if (!bypass) {
+					statsDebug.clearRetry(requestKey);
+					throw new Error("Failed to fetch the info from server (status 401). Please login with Spotify again.");
+				}
+				headers["Authorization"] = `Bearer ${bypass}`;
 			}
 
 			const httpResponse = await fetch(url, { headers });
@@ -438,12 +354,10 @@ export const apiFetch = async <T>(name: string, url: string, log = true): Promis
 			}
 
 			if (!httpResponse.ok) {
-				// If 401 with external token, try refresh once then fallback to session token
 				if (httpResponse.status === 401 && hasExternalAuth()) {
-					const refreshed = await refreshExternalToken();
-					if (refreshed?.accessToken) continue;
 					clearExternalToken();
-					continue;
+					statsDebug.clearRetry(requestKey);
+					throw new Error("Failed to fetch the info from server (status 401). Please login with Spotify again.");
 				}
 				const errorBody = await httpResponse.json().catch(() => ({})) as { error?: { message?: string } };
 				const message = errorBody?.error?.message || `status ${httpResponse.status}`;
